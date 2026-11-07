@@ -19,6 +19,8 @@ public class SistemaClinica {
                 case 1: registrarPaciente(); break;
                 case 2: verRegistrados(); break;
                 case 3: verPendientes(); break;
+                case 4: procesarSiguiente(); break;
+                case 5: verHistorial(); break;
                 case 10: System.out.println("Hasta luego."); break;
                 default: System.out.println("Opcion invalida o aun no disponible.");
             }
@@ -26,7 +28,8 @@ public class SistemaClinica {
     }
 
     private void mostrarMenu() {
-        System.out.println("***** Registrar paciente*****");
+        System.out.println("**** CLINICA MEDICA ****");
+        System.out.println("1. Registrar paciente");
         System.out.println("2. Ver todos los pacientes registrados");
         System.out.println("3. Ver pacientes pendientes");
         System.out.println("4. Procesar siguiente paciente");
@@ -51,20 +54,38 @@ public class SistemaClinica {
 
     // Opciones 2 y 3
     private void verRegistrados() {
-        System.out.println("***Pacientes registrados (adelante) ***");
+        System.out.println("*** Pacientes registrados (adelante) ***");
         listaGeneral.mostrarAdelante();
         if (!listaGeneral.esVacia()) {
-            System.out.println("***Pacientes registrados (atras) ***");
+            System.out.println("*** Pacientes registrados (atras) ***");
             listaGeneral.mostrarAtras();
         }
     }
 
     private void verPendientes() {
-        System.out.println("***Pacientes pendientes (orden de llegada) ***");
+        System.out.println("*** Pacientes pendientes (orden de llegada) ***");
         colaPendientes.mostrar();
     }
 
-    //  Lectura de datos
+    // Opcion 4
+    private void procesarSiguiente() {
+        if (colaPendientes.esVacia()) {
+            System.out.println("No hay pacientes pendientes.");
+            return;
+        }
+        Paciente procesado = (Paciente) colaPendientes.desencolar();
+        procesado.setEstado(Paciente.ATENDIDO);
+        historialProcesados.apilar(procesado);
+        System.out.println("Paciente atendido: " + procesado);
+    }
+
+    // Opcion 5
+    private void verHistorial() {
+        System.out.println("*** Historial (el mas reciente primero) ***");
+        historialProcesados.mostrar();
+    }
+
+    // Lectura de datos
     private int leerEntero(String mensaje) {
         System.out.print(mensaje);
         String linea = scanner.nextLine().trim();
@@ -80,4 +101,3 @@ public class SistemaClinica {
         return scanner.nextLine().trim();
     }
 }
-
