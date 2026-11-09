@@ -21,6 +21,8 @@ public class SistemaClinica {
                 case 3: verPendientes(); break;
                 case 4: procesarSiguiente(); break;
                 case 5: verHistorial(); break;
+                case 6: buscarPorDocumento(); break;
+                case 9: verCantidades(); break;
                 case 10: System.out.println("Hasta luego."); break;
                 default: System.out.println("Opcion invalida o aun no disponible.");
             }
@@ -83,6 +85,24 @@ public class SistemaClinica {
     private void verHistorial() {
         System.out.println("*** Historial (el mas reciente primero) ***");
         historialProcesados.mostrar();
+    }
+    // ---- Opcion 6 ----
+    private void buscarPorDocumento() {
+        String documento = leerTexto("Documento a buscar: ");
+        int indice = listaGeneral.buscarDato(new Paciente(documento, "", ""));
+        if (indice == -1) {
+            System.out.println("No se encontro un paciente con ese documento.");
+        } else {
+            System.out.println("Encontrado en la posicion " + (indice + 1) + ": "
+                    + listaGeneral.buscarDato(indice));
+        }
+    }
+
+    // ---- Opcion 9 ----
+    private void verCantidades() {
+        System.out.println("Registrados: " + listaGeneral.cuentaElementos());
+        System.out.println("Pendientes:  " + colaPendientes.tamanio());
+        System.out.println("Procesados:  " + historialProcesados.tamanio());
     }
 
     // Lectura de datos
