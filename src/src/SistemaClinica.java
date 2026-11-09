@@ -22,6 +22,8 @@ public class SistemaClinica {
                 case 4: procesarSiguiente(); break;
                 case 5: verHistorial(); break;
                 case 6: buscarPorDocumento(); break;
+                case 7: cancelarPendiente(); break;
+                case 8: deshacerProcesamiento(); break;
                 case 9: verCantidades(); break;
                 case 10: System.out.println("Hasta luego."); break;
                 default: System.out.println("Opcion invalida o aun no disponible.");
@@ -86,7 +88,7 @@ public class SistemaClinica {
         System.out.println("*** Historial (el mas reciente primero) ***");
         historialProcesados.mostrar();
     }
-    // ---- Opcion 6 ----
+    // Opcion 6
     private void buscarPorDocumento() {
         String documento = leerTexto("Documento a buscar: ");
         int indice = listaGeneral.buscarDato(new Paciente(documento, "", ""));
@@ -98,7 +100,48 @@ public class SistemaClinica {
         }
     }
 
-    // ---- Opcion 9 ----
+    //opcion 7
+    private void cancelarPendiente() {
+        if (colaPendientes.esVacia()) {
+            System.out.println("No hay pacientes pendientes para cancelar.");
+            return;
+        }
+        String documento = leerTexto("Documento del paciente a cancelar: ");
+        Paciente buscado = new Paciente(documento, "", "");
+        if (!colaPendientes.contiene(buscado)) {
+            System.out.println("Ese paciente no esta en la cola de pendientes.");
+            return;
+        }
+        Cola auxiliar = new Cola();
+        Paciente cancelado = null;
+        while (!colaPendientes.esVacia()) {
+            Paciente actual = (Paciente) colaPendientes.desencolar();
+            if (actual.equals(buscado)) {
+                cancelado = actual;
+            } else {
+                auxiliar.encolar(actual);
+            }
+        }
+        while (!auxiliar.esVacia()) {
+            colaPendientes.encolar(auxiliar.desencolar());
+        }
+        cancelado.setEstado(Paciente.CANCELADO);
+        System.out.println("Cancelado: " + cancelado);
+    }
+
+    // Opcion 8
+    private void deshacerProcesamiento() {
+        if (historialProcesados.esVacia()) {
+            System.out.println("No hay procesamientos para deshacer.");
+            return;
+        }
+        Paciente ultimo = (Paciente) historialProcesados.desapilar();
+        ultimo.setEstado(Paciente.PENDIENTE);
+        colaPendientes.encolar(ultimo);
+        System.out.println("Procesamiento deshecho. Vuelve a pendientes: " + ultimo);
+    }
+
+    // Opcion 9
     private void verCantidades() {
         System.out.println("Registrados: " + listaGeneral.cuentaElementos());
         System.out.println("Pendientes:  " + colaPendientes.tamanio());
