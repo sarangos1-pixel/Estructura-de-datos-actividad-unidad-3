@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.NoSuchElementException;
 
 public class SistemaClinica {
     private final Lista listaGeneral = new Lista();
@@ -14,25 +15,32 @@ public class SistemaClinica {
         int opcion = 0;
         do {
             mostrarMenu();
-            opcion = leerEntero("Seleccione una opcion: ");
-            switch (opcion) {
-                case 1: registrarPaciente(); break;
-                case 2: verRegistrados(); break;
-                case 3: verPendientes(); break;
-                case 4: procesarSiguiente(); break;
-                case 5: verHistorial(); break;
-                case 6: buscarPorDocumento(); break;
-                case 7: cancelarPendiente(); break;
-                case 8: deshacerProcesamiento(); break;
-                case 9: verCantidades(); break;
-                case 10: System.out.println("Hasta luego."); break;
-                default: System.out.println("Opcion invalida o aun no disponible.");
+            try {
+                opcion = leerEntero("Seleccione una opcion: ");
+                switch (opcion) {
+                    case 1: registrarPaciente(); break;
+                    case 2: verRegistrados(); break;
+                    case 3: verPendientes(); break;
+                    case 4: procesarSiguiente(); break;
+                    case 5: verHistorial(); break;
+                    case 6: buscarPorDocumento(); break;
+                    case 7: cancelarPendiente(); break;
+                    case 8: deshacerProcesamiento(); break;
+                    case 9: verCantidades(); break;
+                    case 10: System.out.println("Hasta luego."); break;
+                    default: System.out.println("Opcion invalida. Elija de 1 a 10.");
+                }
+            } catch (NoSuchElementException e) {
+                System.out.println("Entrada finalizada. Saliendo.");
+                opcion = 10;
+            } catch (IllegalStateException | IndexOutOfBoundsException e) {
+                System.out.println("Error: " + e.getMessage());
             }
         } while (opcion != 10);
     }
 
     private void mostrarMenu() {
-        System.out.println("**** CLINICA MEDICA ****");
+        System.out.println("***** CLINICA MEDICA *****");
         System.out.println("1. Registrar paciente");
         System.out.println("2. Ver todos los pacientes registrados");
         System.out.println("3. Ver pacientes pendientes");
@@ -47,10 +55,18 @@ public class SistemaClinica {
 
     // Opcion 1
     private void registrarPaciente() {
-        String documento = leerTexto("Documento: ");
-        String nombre = leerTexto("Nombre: ");
-        String motivo = leerTexto("Motivo de consulta: ");
-        Paciente nuevo = new Paciente(documento, nombre, motivo);
+        String documento = leerTextoNoVacio("Documento: ");
+        if (!documento.matches("\\d+")) {
+            System.out.println("Error: el documento debe contener solo numeros.");
+            return;
+        }
+        Paciente nuevo = new Paciente(documento, "", "");
+        if (listaGeneral.contiene(nuevo)) {      // usa equals() -> compara por documento
+            System.out.println("Error: ya existe un paciente con ese documento.");
+            return;
+        }
+        nuevo.setNombre(leerTextoNoVacio("Nombre: "));
+        nuevo.setMotivoConsulta(leerTextoNoVacio("Motivo de consulta: "));
         listaGeneral.agregar(nuevo);
         colaPendientes.encolar(nuevo);
         System.out.println("Paciente registrado y enviado a la cola de pendientes.");
@@ -88,9 +104,10 @@ public class SistemaClinica {
         System.out.println("*** Historial (el mas reciente primero) ***");
         historialProcesados.mostrar();
     }
+
     // Opcion 6
     private void buscarPorDocumento() {
-        String documento = leerTexto("Documento a buscar: ");
+        String documento = leerTextoNoVacio("Documento a buscar: ");
         int indice = listaGeneral.buscarDato(new Paciente(documento, "", ""));
         if (indice == -1) {
             System.out.println("No se encontro un paciente con ese documento.");
@@ -100,13 +117,13 @@ public class SistemaClinica {
         }
     }
 
-    //opcion 7
+    // Opcion 7
     private void cancelarPendiente() {
         if (colaPendientes.esVacia()) {
             System.out.println("No hay pacientes pendientes para cancelar.");
             return;
         }
-        String documento = leerTexto("Documento del paciente a cancelar: ");
+        String documento = leerTextoNoVacio("Documento del paciente a cancelar: ");
         Paciente buscado = new Paciente(documento, "", "");
         if (!colaPendientes.contiene(buscado)) {
             System.out.println("Ese paciente no esta en la cola de pendientes.");
@@ -141,14 +158,14 @@ public class SistemaClinica {
         System.out.println("Procesamiento deshecho. Vuelve a pendientes: " + ultimo);
     }
 
-    // Opcion 9
+    //Opcion 9
     private void verCantidades() {
         System.out.println("Registrados: " + listaGeneral.cuentaElementos());
         System.out.println("Pendientes:  " + colaPendientes.tamanio());
         System.out.println("Procesados:  " + historialProcesados.tamanio());
     }
 
-    // Lectura de datos
+    // Lectura de datos validada
     private int leerEntero(String mensaje) {
         System.out.print(mensaje);
         String linea = scanner.nextLine().trim();
@@ -159,8 +176,13 @@ public class SistemaClinica {
         }
     }
 
-    private String leerTexto(String mensaje) {
-        System.out.print(mensaje);
-        return scanner.nextLine().trim();
+    private String leerTextoNoVacio(String mensaje) {
+        String texto;
+        do {
+            System.out.print(mensaje);
+            texto = scanner.nextLine().trim();
+            if (texto.isEmpty()) System.out.println("El campo no puede estar vacio.");
+        } while (texto.isEmpty());
+        return texto;
     }
 }
